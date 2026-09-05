@@ -1,8 +1,6 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/inc/config.php';
-
-$user = current_user();
 ?>
 <!doctype html>
 <html lang="en">
@@ -19,17 +17,8 @@ $user = current_user();
             <p class="tagline"><?= e($tagLine) ?></p>
         </div>
         <nav>
-            <?php if ($user): ?>
-                <a href="home.php">Home</a>
-                <a class="profile-link" href="profile.php?u=<?= urlencode($user['username']) ?>">@<?= e($user['username']) ?></a>
-                <form class="inline" method="post" action="logout.php">
-                    <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                    <button>Log out</button>
-                </form>
-            <?php else: ?>
-                <a href="login.php">Log in</a>
-                <a class="button" href="register.php">Sign up</a>
-            <?php endif; ?>
+            <a href="login.php">Log in</a>
+            <a class="button" href="register.php">Sign up</a>
         </nav>
     </div>
 </header>

@@ -41,7 +41,7 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
             <p class="tagline"><?= e($tagLine) ?></p>
         </div>
         <nav>
-            <a href="./">Home</a>
+            <a href="home.php">Home</a>
             <?php if ($user): ?>
                 <a class="profile-link" href="profile.php?u=<?= urlencode($user['username']) ?>">@<?= e($user['username']) ?></a>
                 <form class="inline" method="post" action="logout.php">

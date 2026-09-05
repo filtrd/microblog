@@ -93,7 +93,7 @@ $avatarError = trim($_GET['avatar_error'] ?? '');
             <p class="tagline"><?= e($tagLine) ?></p>
         </div>
         <nav>
-            <a href="./">Home</a>
+            <a href="home.php">Home</a>
             <?php if ($user): ?>
                 <a href="profile.php?u=<?= urlencode($user['username']) ?>">@<?= e($user['username']) ?></a>
                 <form class="inline" method="post" action="logout.php"><input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>"><button>Log out</button></form>

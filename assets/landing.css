@@ -1,0 +1,76 @@
+/* ----------------------------------------
+   Reset
+   ---------------------------------------- */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+    margin: 0;
+}
+
+img,
+picture,
+svg,
+canvas {
+    display: block;
+    max-width: 100%;
+}
+
+
+/* ----------------------------------------
+   Landing page
+   ---------------------------------------- */
+
+.landing {
+    max-width: 640px;
+    padding: 96px 0 120px;
+}
+
+.landing-kicker {
+    margin: 0 0 24px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.landing h1 {
+    margin: 0;
+    font-size: clamp(32px, 6vw, 48px);
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+}
+
+.landing-copy {
+    margin: 24px 0 32px;
+    font-size: 16px;
+}
+
+.landing-cta {
+    display: inline-block;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .landing {
+        padding: 72px 0 88px;
+    }
+
+    .landing h1 {
+        font-size: 34px;
+    }
+}

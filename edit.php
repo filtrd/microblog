@@ -84,13 +84,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <section class="edit-post">
             <?php if ($canEdit): ?>
                 <h1>Edit post</h1>
-                <form method="post">
-                    <textarea name="content" maxlength="10000"><?= e($post['content']) ?></textarea>
+                <form class="edit-post-form" method="post" data-max-post-length="<?= (int)$maxPostLength ?>">
+                    <textarea name="content" maxlength="<?= (int)$maxPostLength ?>"><?= e($post['content']) ?></textarea>
                     <input type="hidden" name="post_id" value="<?= (int)$post['id'] ?>">
                     <input type="hidden" name="redirect" value="<?= e($redirect) ?>">
                     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
                     <div class="edit-post-actions">
-                        <span>You have <?= (int)$postEditCount - (int)$post['edit_count'] ?> edits and <?= max(0, (int)$postEditTime - (int)floor($age / 60)) ?> minutes left</span>
+                        <span>You have <?= (int)$postEditCount - (int)$post['edit_count'] ?> edits and <?= max(0, (int)$postEditTime - (int)floor($age / 60)) ?> minutes left · <span id="edit-char-count">0/<?= (int)$maxPostLength ?></span></span>
                         <div>
                             <a href="<?= e($redirectTarget) ?>">Cancel</a>
                             <button class="button" type="submit">Save</button>
@@ -110,5 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav>
     </div>
 </footer>
+<script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

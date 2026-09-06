@@ -2,7 +2,6 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/inc/database.php';
-require_once __DIR__ . '/inc/config.php';
 
 $user = current_user();
 
@@ -118,7 +117,6 @@ $commentError = get_flash('comment_error');
         <?php renderPost($post, $user, $fromProfile ? 'profile' : 'index'); ?>
 
         <section class="comments-page">
-            
             <?php if ($commentError): ?><p class="form-error"><?= e($commentError) ?></p><?php endif; ?>
 
             <?php if ($user): ?>
@@ -144,46 +142,6 @@ $commentError = get_flash('comment_error');
     <div class="wrap"><span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span><nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav></div>
 </footer>
 
-<script type="module">
-import { initGalleries } from './assets/js/gallery.js';
-initGalleries();
-</script>
-
-<script>
-document.querySelectorAll('.post-menu').forEach(menu => {
-    const button = menu.querySelector('.post-menu-button');
-    const dropdown = menu.querySelector('.post-menu-dropdown');
-    button.addEventListener('click', event => {
-        event.stopPropagation();
-        const open = !dropdown.hidden;
-        document.querySelectorAll('.post-menu-dropdown').forEach(item => item.hidden = true);
-        document.querySelectorAll('.post-menu-button').forEach(item => item.setAttribute('aria-expanded', 'false'));
-        dropdown.hidden = open;
-        button.setAttribute('aria-expanded', String(!open));
-    });
-});
-
-document.querySelectorAll('.comment-reply-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const form = document.querySelector('[data-reply-form="' + button.dataset.commentId + '"]');
-        if (form) {
-            form.hidden = !form.hidden;
-            if (!form.hidden) form.querySelector('textarea').focus();
-        }
-    });
-});
-
-document.querySelectorAll('.comment-cancel-button').forEach(button => {
-    button.addEventListener('click', () => {
-        const form = document.querySelector('[data-reply-form="' + button.dataset.commentId + '"]');
-        if (form) form.hidden = true;
-    });
-});
-
-document.addEventListener('click', () => {
-    document.querySelectorAll('.post-menu-dropdown').forEach(item => item.hidden = true);
-    document.querySelectorAll('.post-menu-button').forEach(item => item.setAttribute('aria-expanded', 'false'));
-});
-</script>
+<script type="module" src="assets/js/app.js"></script>
 </body>
 </html>

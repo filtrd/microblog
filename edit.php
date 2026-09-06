@@ -38,10 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $content = trim($_POST['content'] ?? '');
         $hasUpload = !empty($_FILES['image']['name']);
         $imageUrl = trim($_POST['image_url'] ?? '');
+        $removeImage = !empty($_POST['remove_image']);
         $hasImage = $hasUpload || $imageUrl !== '';
         $imagePath = $post['image_path'];
 
-        if ($content === '' && !$hasImage && empty($post['image_path'])) {
+        if ($content === '' && !$hasImage && (!$post['image_path'] || $removeImage)) {
             $error = 'Please write something or add an image.';
         } elseif ($content !== '' && postCharacterCount($content) > (int)$maxPostLength) {
             $error = 'Post is too long.';
@@ -66,6 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (RuntimeException $e) {
                 $error = $e->getMessage();
             }
+        } elseif ($removeImage) {
+            $imagePath = null;
         }
 
         if ($error === '') {
@@ -137,6 +140,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="composer-meta">
+                        <?php if ($post['image_path']): ?>
+                            <label><input type="checkbox" name="remove_image" value="1" <?= !empty($_POST['remove_image']) ? 'checked' : '' ?>> Remove image</label>
+                        <?php endif; ?>
                         <span id="selected-image"></span>
                         <span id="char-count">0/<?= (int)$maxPostLength ?></span>
                         <input type="hidden" name="post_id" value="<?= (int)$post['id'] ?>">

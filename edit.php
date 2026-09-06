@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <main>
     <div class="wrap">
         <?php if ($canEdit): ?>
-            <p class="edit-info">You have <?= $remainingEdits ?> edit<?= $remainingEdits === 1 ? '' : 's' ?> and <?= $remainingMinutes ?> minute<?= $remainingMinutes === 1 ? '' : 's' ?> to edit this post.</p>
+            <p class="edit-info">You can edit this post <?= $remainingEdits ?> more time<?= $remainingEdits === 1 ? '' : 's' ?> within <?= $remainingMinutes ?> minute<?= $remainingMinutes === 1 ? '' : 's' ?>.</p>
             <form class="composer" method="post" action="edit.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
                 <?php if ($error): ?>
                     <p class="form-error"><?= e($error) ?></p>

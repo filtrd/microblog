@@ -24,14 +24,14 @@
     gap: 16px;
 }
 
-label {
+.auth label {
     display: grid;
     gap: 6px;
     font-weight: 600;
     font-size: 12px;
 }
 
-input {
+.auth input {
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
@@ -41,14 +41,6 @@ input {
     font-size: 12px;
 }
 
-input:focus {
+.auth input:focus {
     outline: 1px solid #888;
-}
-
-.error {
-    margin-bottom: 16px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    color: #900;
-    font-size: 10px;
 }

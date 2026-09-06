@@ -154,13 +154,13 @@ dialog {
     font-weight: 700;
 }
 
-dialog form {
+#delete-dialog form {
     display: flex;
     justify-content: center;
     column-gap: 24px;
 }
 
-dialog form button {
+#delete-dialog form button {
     font-size: 12px;
 }
 

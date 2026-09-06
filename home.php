@@ -53,9 +53,6 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
                     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
                     <button>Log out</button>
                 </form>
-            <?php else: ?>
-                <a href="login.php">Log in</a>
-                <a class="button" href="register.php">Sign up</a>
             <?php endif; ?>
         </nav>
     </div>
@@ -63,35 +60,32 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
 
 <main>
     <div class="wrap">
-        <?php if ($user): ?>
-            <form class="composer" method="post" action="post.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
-                <textarea name="content" placeholder="What's happening?"><?= e($postDraft) ?></textarea>
-                <input type="file" id="image-upload" name="image" accept="image/jpeg,image/png,image/webp" hidden>
+        <form class="composer" method="post" action="post.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
+            <textarea name="content" placeholder="What's happening?"><?= e($postDraft) ?></textarea>
+            <input type="file" id="image-upload" name="image" accept="image/jpeg,image/png,image/webp" hidden>
+            <input type="hidden" id="image-url" name="image_url" value="">
 
-                <div class="composer-tools">
-                    <div class="composer-shortcuts">
-                        <button type="button" class="icon-button" id="image-button" aria-label="Add image" title="Add image">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 5 5"></path></svg>
-                        </button>
-                        <button type="button" class="icon-button" id="emoji-button" aria-label="Add emoji" title="Add emoji">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8.5 14.5c1 1.5 2.2 2.25 3.5 2.25s2.5-.75 3.5-2.25"></path></svg>
-                        </button>
-                        <div class="emoji-picker" id="emoji-picker" hidden>
-                            <button type="button">😀</button><button type="button">😂</button><button type="button">❤️</button><button type="button">👍</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">🚀</button><button type="button">😊</button><button type="button">😎</button><button type="button">🤔</button><button type="button">👏</button><button type="button">🙌</button>
-                        </div>
-                    </div>
-                    <div class="composer-meta">
-                        <span id="selected-image"></span>
-                        <span id="char-count">0/<?= (int)$maxPostLength ?></span>
-                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                        <button class="button">Post</button>
+            <div class="composer-tools">
+                <div class="composer-shortcuts">
+                    <button type="button" class="icon-button" id="image-button" aria-label="Add image" title="Add image">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 5 5"></path></svg>
+                    </button>
+                    <button type="button" class="icon-button" id="emoji-button" aria-label="Add emoji" title="Add emoji">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8.5 14.5c1 1.5 2.2 2.25 3.5 2.25s2.5-.75 3.5-2.25"></path></svg>
+                    </button>
+                    <div class="emoji-picker" id="emoji-picker" hidden>
+                        <button type="button">😀</button><button type="button">😂</button><button type="button">❤️</button><button type="button">👍</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">🚀</button><button type="button">😊</button><button type="button">😎</button><button type="button">🤔</button><button type="button">👏</button><button type="button">🙌</button>
                     </div>
                 </div>
-            </form>
-            <?php if ($postError): ?>
-                <p class="form-error"><?= e($postError) ?></p>
-            <?php endif; ?>
-        <?php elseif ($postError): ?>
+                <div class="composer-meta">
+                    <span id="selected-image"></span>
+                    <span id="char-count">0/<?= (int)$maxPostLength ?></span>
+                    <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+                    <button class="button" type="submit">Post</button>
+                </div>
+            </div>
+        </form>
+        <?php if ($postError): ?>
             <p class="form-error"><?= e($postError) ?></p>
         <?php endif; ?>
 
@@ -109,12 +103,20 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
     </div>
 </main>
 
-<dialog id="delete-dialog" aria-labelledby="delete-dialog-title">
-    <p id="delete-dialog-title">Delete this post?</p>
-    <form method="dialog">
-        <button type="submit" value="cancel">Cancel</button>
-        <button type="submit" value="confirm" autofocus>Delete</button>
-    </form>
+<dialog id="image-dialog" aria-labelledby="image-dialog-title">
+    <p id="image-dialog-title">Add image</p>
+    <div class="image-dialog-options">
+        <button type="button" id="upload-image-option">Upload image</button>
+        <button type="button" id="url-image-option">From URL</button>
+        <button type="button" id="image-dialog-cancel">Cancel</button>
+    </div>
+    <div id="image-url-form" hidden>
+        <input type="url" id="image-url-input" placeholder="https://example.com/image.jpg" autocomplete="url">
+        <div class="image-dialog-actions">
+            <button type="button" id="image-url-cancel">Cancel</button>
+            <button type="button" id="image-url-add">Add image</button>
+        </div>
+    </div>
 </dialog>
 
 <footer>

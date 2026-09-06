@@ -9,7 +9,7 @@
     text-align: left;
 }
 
-#composer-dialog {
+.composer-dialog {
     width: 100vw;
     max-width: none;
     height: 100vh;
@@ -21,7 +21,7 @@
     text-align: left;
 }
 
-#composer-dialog[open] {
+.composer-dialog[open] {
     display: flex;
     flex-direction: column;
 }
@@ -36,12 +36,13 @@
     font-size: 12px;
 }
 
-.composer-dialog-head button {
+.composer-dialog-head button,
+.composer-dialog-head a {
     color: #666;
     font-size: 12px;
 }
 
-#composer-dialog .composer {
+.composer-dialog .composer {
     width: min(700px, calc(100% - 40px));
     flex: 1;
     margin: 0 auto;
@@ -52,7 +53,7 @@
     flex-direction: column;
 }
 
-#composer-dialog .composer textarea {
+.composer-dialog .composer textarea {
     min-height: 60vh;
     flex: 1;
     resize: none;
@@ -60,17 +61,25 @@
     font-size: 14px;
 }
 
-#composer-dialog .composer-tools {
+.composer-dialog .composer-tools {
     margin-top: 12px;
 }
 
-#composer-dialog::backdrop {
+.composer-dialog .edit-info {
+    width: min(700px, calc(100% - 40px));
+    margin: 0 auto;
+    color: #777;
+    font-size: 12px;
+}
+
+.composer-dialog::backdrop {
     background: #fff;
 }
 
 @media (max-width: 600px) {
     .composer-dialog-head,
-    #composer-dialog .composer {
+    .composer-dialog .composer,
+    .composer-dialog .edit-info {
         width: calc(100% - 32px);
     }
 
@@ -78,7 +87,7 @@
         padding-top: 18px;
     }
 
-    #composer-dialog .composer textarea {
+    .composer-dialog .composer textarea {
         min-height: 55vh;
     }
 }

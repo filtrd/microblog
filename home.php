@@ -165,7 +165,7 @@ $composerOpenOnLoad = $editing || (!$editing && $postError);
     </form>
 </dialog>
 <?php else: ?>
-<dialog id="composer-dialog" aria-labelledby="composer-dialog-title" data-open-on-load="<?= $composerOpenOnLoad ? '1' : '0' ?>">
+<dialog id="composer-dialog" class="composer-dialog" aria-labelledby="composer-dialog-title" data-open-on-load="<?= $composerOpenOnLoad ? '1' : '0' ?>">
     <div class="composer-dialog-head">
         <strong id="composer-dialog-title">New post</strong>
         <button type="button" id="composer-close">Close</button>

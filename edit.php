@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/inc/database.php';
-require_once __DIR__ . '/inc/config.php';
+require_once __DIR__ . '/inc/image.php';
 
 $user = require_login();
 $postId = (int)($_GET['post_id'] ?? $_POST['post_id'] ?? 0);
@@ -34,7 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : 'This post can no longer be edited.';
     } else {
         $content = trim($_POST['content'] ?? '');
-        $hasImage = !empty($_FILES['image']['name']);
+        $hasUpload = !empty($_FILES['image']['name']);
+        $imageUrl = trim($_POST['image_url'] ?? '');
+        $hasImage = $hasUpload || $imageUrl !== '';
         $imagePath = $post['image_path'];
 
         if ($content === '' && !$hasImage && empty($post['image_path'])) {
@@ -42,57 +44,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($content !== '' && postCharacterCount($content) > (int)$maxPostLength) {
             $error = 'Post is too long.';
         } elseif ($hasImage) {
-            $uploadError = $_FILES['image']['error'] ?? UPLOAD_ERR_NO_FILE;
-
-            if ($uploadError !== UPLOAD_ERR_OK) {
-                $error = match ($uploadError) {
-                    UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Image is too large. Maximum size is 5 MB.',
-                    UPLOAD_ERR_PARTIAL => 'Image upload was incomplete. Please try again.',
-                    UPLOAD_ERR_NO_TMP_DIR => 'Image upload failed. Please try again later.',
-                    UPLOAD_ERR_CANT_WRITE => 'Image could not be saved. Please try again later.',
-                    UPLOAD_ERR_EXTENSION => 'Image upload was blocked by the server.',
-                    default => 'Image upload failed. Please try again.',
-                };
-            } elseif ($_FILES['image']['size'] > 5 * 1024 * 1024) {
-                $error = 'Image is too large. Maximum size is 5 MB.';
-            } else {
-                $finfo = new finfo(FILEINFO_MIME_TYPE);
-                $mime = $finfo->file($_FILES['image']['tmp_name']);
-                $allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-
-                if (!in_array($mime, $allowedMimes, true)) {
-                    $error = 'Please upload a JPEG, PNG, or WebP image.';
-                } elseif (!function_exists('imagecreatefromstring') || !function_exists('imagewebp')) {
-                    $error = 'Image processing is unavailable. Please try again later.';
-                } else {
-                    $image = imagecreatefromstring(file_get_contents($_FILES['image']['tmp_name']));
-
-                    if ($image === false) {
-                        $error = "We couldn't process that image. Please try another one.";
-                    } else {
-                        imagepalettetotruecolor($image);
-                        imagealphablending($image, false);
-                        imagesavealpha($image, true);
-
-                        $uploadDir = __DIR__ . '/uploads/posts';
-                        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-                            imagedestroy($image);
-                            $error = 'Image could not be saved. Please try again later.';
-                        } else {
-                            $filename = bin2hex(random_bytes(16)) . '.webp';
-                            $destination = $uploadDir . '/' . $filename;
-
-                            if (!imagewebp($image, $destination, 82)) {
-                                imagedestroy($image);
-                                @unlink($destination);
-                                $error = 'Image could not be saved. Please try again later.';
-                            } else {
-                                imagedestroy($image);
-                                $imagePath = 'uploads/posts/' . $filename;
-                            }
-                        }
+            try {
+                if ($hasUpload) {
+                    $uploadError = $_FILES['image']['error'] ?? UPLOAD_ERR_NO_FILE;
+                    if ($uploadError !== UPLOAD_ERR_OK) {
+                        throw new RuntimeException(match ($uploadError) {
+                            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Image is too large. Maximum size is 5 MB.',
+                            UPLOAD_ERR_PARTIAL => 'Image upload was incomplete. Please try again.',
+                            UPLOAD_ERR_NO_TMP_DIR => 'Image upload failed. Please try again later.',
+                            UPLOAD_ERR_CANT_WRITE => 'Image could not be saved. Please try again later.',
+                            UPLOAD_ERR_EXTENSION => 'Image upload was blocked by the server.',
+                            default => 'Image upload failed. Please try again.',
+                        });
                     }
+                    $imagePath = saveImageFromFile($_FILES['image']['tmp_name']);
+                } elseif ($imageUrl !== '') {
+                    $imagePath = saveImageFromUrl($imageUrl);
                 }
+            } catch (RuntimeException $e) {
+                $error = $e->getMessage();
             }
         }
 
@@ -149,6 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
                 <textarea name="content" placeholder="What's happening?"><?= e($_POST['content'] ?? $post['content']) ?></textarea>
                 <input type="file" id="image-upload" name="image" accept="image/jpeg,image/png,image/webp" hidden>
+                <input type="hidden" id="image-url" name="image_url" value="<?= e($_POST['image_url'] ?? '') ?>">
 
                 <div class="composer-tools">
                     <div class="composer-shortcuts">
@@ -178,6 +149,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
     </div>
 </main>
+
+<dialog id="image-dialog" aria-labelledby="image-dialog-title">
+    <p id="image-dialog-title">Add image</p>
+    <div class="image-dialog-options">
+        <button type="button" id="upload-image-option">Upload image</button>
+        <button type="button" id="url-image-option">From URL</button>
+        <button type="button" id="image-dialog-cancel">Cancel</button>
+    </div>
+    <div id="image-url-form" hidden>
+        <input type="url" id="image-url-input" placeholder="https://example.com/image.jpg" autocomplete="url">
+        <div class="image-dialog-actions">
+            <button type="button" id="image-url-cancel">Cancel</button>
+            <button type="button" id="image-url-add">Add image</button>
+        </div>
+    </div>
+</dialog>
 
 <footer>
     <div class="wrap">

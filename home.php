@@ -38,6 +38,92 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
 <title><?= e($siteName) ?> · <?= e($tagLine) ?></title>
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/media.css">
+<style>
+#composer-open {
+    display: block;
+    width: 100%;
+    margin-bottom: 36px;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    color: #888;
+    text-align: left;
+}
+
+#composer-dialog {
+    width: 100vw;
+    max-width: none;
+    height: 100vh;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    text-align: left;
+}
+
+#composer-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.composer-dialog-head {
+    width: min(700px, calc(100% - 40px));
+    margin: 0 auto;
+    padding: 24px 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.composer-dialog-head button {
+    color: #666;
+    font-size: 12px;
+}
+
+#composer-dialog .composer {
+    width: min(700px, calc(100% - 40px));
+    flex: 1;
+    margin: 0 auto;
+    padding: 12px 0 24px;
+    border: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#composer-dialog .composer textarea {
+    min-height: 60vh;
+    flex: 1;
+    resize: none;
+    padding: 12px 0;
+    font-size: 14px;
+}
+
+#composer-dialog .composer-tools {
+    margin-top: 12px;
+}
+
+#composer-dialog::backdrop {
+    background: #fff;
+}
+
+@media (max-width: 600px) {
+    .composer-dialog-head,
+    #composer-dialog .composer {
+        width: calc(100% - 32px);
+    }
+
+    .composer-dialog-head {
+        padding-top: 18px;
+    }
+
+    #composer-dialog .composer textarea {
+        min-height: 55vh;
+    }
+}
+</style>
 </head>
 <body>
 <header class="topbar">
@@ -61,34 +147,8 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
 
 <main>
     <div class="wrap">
-        <form class="composer" method="post" action="post.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
-            <textarea name="content" placeholder="What's happening?"><?= e($postDraft) ?></textarea>
-            <input type="file" id="image-upload" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden>
-            <input type="hidden" id="image-urls" name="image_urls" value="[]">
-            <input type="hidden" id="image-order" name="image_order" value="[]">
+        <button type="button" id="composer-open" aria-haspopup="dialog">What's happening?</button>
 
-            <div id="selected-images" class="selected-images" aria-label="Selected images"></div>
-
-            <div class="composer-tools">
-                <div class="composer-shortcuts">
-                    <button type="button" class="icon-button" id="image-button" aria-label="Add image" title="Add image">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 5 5"></path></svg>
-                    </button>
-                    <button type="button" class="icon-button" id="emoji-button" aria-label="Add emoji" title="Add emoji">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8.5 14.5c1 1.5 2.2 2.25 3.5 2.25s2.5-.75 3.5-2.25"></path></svg>
-                    </button>
-                    <div class="emoji-picker" id="emoji-picker" hidden>
-                        <button type="button">😀</button><button type="button">😂</button><button type="button">❤️</button><button type="button">👍</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">🚀</button><button type="button">😊</button><button type="button">😎</button><button type="button">🤔</button><button type="button">👏</button><button type="button">🙌</button>
-                    </div>
-                </div>
-                <div class="composer-meta">
-                    <span id="image-count"></span>
-                    <span id="char-count">0/<?= (int)$maxPostLength ?></span>
-                    <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                    <button class="button" type="submit">Post</button>
-                </div>
-            </div>
-        </form>
         <?php if ($postError): ?>
             <p class="form-error"><?= e($postError) ?></p>
         <?php endif; ?>
@@ -106,6 +166,41 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
         <?php if ($hasMorePosts): ?><p id="feed-status" class="empty" hidden>Loading more posts…</p><?php endif; ?>
     </div>
 </main>
+
+<dialog id="composer-dialog" aria-labelledby="composer-dialog-title" data-open-on-load="<?= $postError ? '1' : '0' ?>">
+    <div class="composer-dialog-head">
+        <strong id="composer-dialog-title">New post</strong>
+        <button type="button" id="composer-close">Close</button>
+    </div>
+    <form class="composer" method="post" action="post.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
+        <textarea name="content" placeholder="What's happening?"><?= e($postDraft) ?></textarea>
+        <input type="file" id="image-upload" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden>
+        <input type="hidden" id="image-urls" name="image_urls" value="[]">
+        <input type="hidden" id="image-order" name="image_order" value="[]">
+
+        <div id="selected-images" class="selected-images" aria-label="Selected images"></div>
+
+        <div class="composer-tools">
+            <div class="composer-shortcuts">
+                <button type="button" class="icon-button" id="image-button" aria-label="Add image" title="Add image">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 5 5"></path></svg>
+                </button>
+                <button type="button" class="icon-button" id="emoji-button" aria-label="Add emoji" title="Add emoji">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8.5 14.5c1 1.5 2.2 2.25 3.5 2.25s2.5-.75 3.5-2.25"></path></svg>
+                </button>
+                <div class="emoji-picker" id="emoji-picker" hidden>
+                    <button type="button">😀</button><button type="button">😂</button><button type="button">❤️</button><button type="button">👍</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">🚀</button><button type="button">😊</button><button type="button">😎</button><button type="button">🤔</button><button type="button">👏</button><button type="button">🙌</button>
+                </div>
+            </div>
+            <div class="composer-meta">
+                <span id="image-count"></span>
+                <span id="char-count">0/<?= (int)$maxPostLength ?></span>
+                <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+                <button class="button" type="submit">Post</button>
+            </div>
+        </div>
+    </form>
+</dialog>
 
 <dialog id="image-dialog" aria-labelledby="image-dialog-title">
     <p id="image-dialog-title">Add image</p>

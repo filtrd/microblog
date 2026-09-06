@@ -58,7 +58,16 @@ export function initComposer() {
     const counter = document.getElementById('char-count');
     const imageButton = document.getElementById('image-button');
     const imageUpload = document.getElementById('image-upload');
+    const imageUrl = document.getElementById('image-url');
     const selectedImage = document.getElementById('selected-image');
+    const imageDialog = document.getElementById('image-dialog');
+    const uploadImageOption = document.getElementById('upload-image-option');
+    const urlImageOption = document.getElementById('url-image-option');
+    const imageDialogCancel = document.getElementById('image-dialog-cancel');
+    const imageUrlForm = document.getElementById('image-url-form');
+    const imageUrlInput = document.getElementById('image-url-input');
+    const imageUrlCancel = document.getElementById('image-url-cancel');
+    const imageUrlAdd = document.getElementById('image-url-add');
     const emojiButton = document.getElementById('emoji-button');
     const emojiPicker = document.getElementById('emoji-picker');
     const composer = document.querySelector('.composer');
@@ -66,13 +75,65 @@ export function initComposer() {
 
     initCharacterCounter(textarea, counter, maxPostLength);
 
-    if (imageButton && imageUpload) {
-        imageButton.addEventListener('click', () => imageUpload.click());
+    function resetImageDialog() {
+        if (imageUrlForm) imageUrlForm.hidden = true;
+        if (imageUrlInput) imageUrlInput.value = imageUrl?.value || '';
+        if (uploadImageOption) uploadImageOption.hidden = false;
+        if (urlImageOption) urlImageOption.hidden = false;
+        if (imageDialogCancel) imageDialogCancel.hidden = false;
+    }
+
+    if (imageButton && imageDialog) {
+        imageButton.addEventListener('click', () => {
+            resetImageDialog();
+            imageDialog.showModal();
+        });
+
+        uploadImageOption?.addEventListener('click', () => {
+            imageUrl.value = '';
+            imageDialog.close();
+            imageUpload?.click();
+        });
+
+        urlImageOption?.addEventListener('click', () => {
+            if (imageUrlForm) imageUrlForm.hidden = false;
+            if (uploadImageOption) uploadImageOption.hidden = true;
+            if (urlImageOption) urlImageOption.hidden = true;
+            if (imageDialogCancel) imageDialogCancel.hidden = true;
+            imageUrlInput?.focus();
+        });
+
+        imageDialogCancel?.addEventListener('click', () => imageDialog.close());
+        imageUrlCancel?.addEventListener('click', () => imageDialog.close());
+
+        imageUrlAdd?.addEventListener('click', () => {
+            const value = imageUrlInput?.value.trim() || '';
+            try {
+                const parsed = new URL(value);
+                if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
+                imageUrl.value = value;
+                imageUpload.value = '';
+                if (selectedImage) selectedImage.textContent = value;
+                imageDialog.close();
+            } catch {
+                imageUrlInput?.focus();
+            }
+        });
+
+        imageDialog.addEventListener('close', resetImageDialog);
+    }
+
+    if (imageUpload) {
         imageUpload.addEventListener('change', () => {
+            imageUrl.value = '';
             if (selectedImage) {
                 selectedImage.textContent = imageUpload.files.length ? imageUpload.files[0].name : '';
             }
         });
+    }
+
+    if (imageUrl?.value && selectedImage) {
+        selectedImage.textContent = imageUrl.value;
     }
 
     if (emojiButton && emojiPicker && textarea) {

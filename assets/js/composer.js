@@ -88,9 +88,23 @@ export function initComposer() {
         };
 
         composerOpen?.addEventListener('click', openComposer);
-        composerClose?.addEventListener('click', () => composerDialog.close());
+        composerClose?.addEventListener('click', () => {
+            const closeUrl = composerDialog.dataset.closeUrl;
+            if (closeUrl) {
+                window.location.href = closeUrl;
+                return;
+            }
+            composerDialog.close();
+        });
         composerDialog.addEventListener('click', event => {
-            if (event.target === composerDialog) composerDialog.close();
+            if (event.target === composerDialog) {
+                const closeUrl = composerDialog.dataset.closeUrl;
+                if (closeUrl) {
+                    window.location.href = closeUrl;
+                    return;
+                }
+                composerDialog.close();
+            }
         });
         composerDialog.addEventListener('close', () => composerOpen?.focus());
 

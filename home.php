@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/inc/database.php';
-require_once __DIR__ . '/inc/config.php';
 
 $user = current_user();
 if (!$user) {
@@ -181,7 +180,7 @@ $composerOpenOnLoad = $editing || (!$editing && $postError);
         <div class="composer-tools">
             <div class="composer-shortcuts">
                 <button type="button" class="icon-button" id="image-button" aria-label="Add image" title="Add image">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 5 5"></path></svg>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 2.5 2.5 5 5"></path></svg>
                 </button>
                 <button type="button" class="icon-button" id="emoji-button" aria-label="Add emoji" title="Add emoji">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8.5 14.5c1 1.5 2.2 2.25 3.5 2.25s2.5-.75 3.5-2.25"></path></svg>
@@ -226,7 +225,7 @@ $composerOpenOnLoad = $editing || (!$editing && $postError);
 </dialog>
 
 <footer>
-    <div class="wrap topbar">
+    <div class="wrap">
         <span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span>
         <nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav>
     </div>

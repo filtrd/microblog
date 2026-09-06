@@ -74,6 +74,7 @@ if (current_user()) {
 
 .landing-cta {
     display: inline-block;
+    font-weight: 700;
 }
 
 @media (max-width: 600px) {

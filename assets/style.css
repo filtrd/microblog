@@ -671,7 +671,7 @@ main {
     font-size: 10px;
 }
 
-.comment p {
+.comment-content {
     margin: 4px 0;
     font-size: 12px;
     line-height: 1.5;

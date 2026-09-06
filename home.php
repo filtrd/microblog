@@ -37,6 +37,7 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?= e($siteName) ?> · <?= e($tagLine) ?></title>
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/media.css">
 </head>
 <body>
 <header class="topbar">
@@ -62,8 +63,11 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
     <div class="wrap">
         <form class="composer" method="post" action="post.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
             <textarea name="content" placeholder="What's happening?"><?= e($postDraft) ?></textarea>
-            <input type="file" id="image-upload" name="image" accept="image/jpeg,image/png,image/webp" hidden>
-            <input type="hidden" id="image-url" name="image_url" value="">
+            <input type="file" id="image-upload" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden>
+            <input type="hidden" id="image-urls" name="image_urls" value="[]">
+            <input type="hidden" id="image-order" name="image_order" value="[]">
+
+            <div id="selected-images" class="selected-images" aria-label="Selected images"></div>
 
             <div class="composer-tools">
                 <div class="composer-shortcuts">
@@ -78,7 +82,7 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
                     </div>
                 </div>
                 <div class="composer-meta">
-                    <span id="selected-image"></span>
+                    <span id="image-count"></span>
                     <span id="char-count">0/<?= (int)$maxPostLength ?></span>
                     <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
                     <button class="button" type="submit">Post</button>

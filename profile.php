@@ -84,6 +84,7 @@ $avatarError = trim($_GET['avatar_error'] ?? '');
 <title>@<?= e($profile['username']) ?> · <?= e($siteName) ?></title>
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/profile.css">
+<link rel="stylesheet" href="assets/media.css">
 </head>
 <body>
 <header class="topbar">

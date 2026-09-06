@@ -67,9 +67,8 @@ a:hover {
 }
 
 .topbar {
-    padding: 32px 0;
+    padding: 28px 0 8px;
     background: #fff;
-    border-bottom: 1px solid #ddd;
 }
 
 .topbar .wrap {
@@ -160,7 +159,7 @@ dialog::backdrop {
 }
 
 main {
-    padding: 36px 0 80px;
+    padding: 12px 0 80px;
 }
 
 .composer {
@@ -532,6 +531,8 @@ main {
     display: flex;
     gap: 20px;
     align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #ddd;
 }
 
 .avatar-form {
@@ -791,7 +792,7 @@ footer nav {
     }
 
     .topbar {
-        padding: 24px 0;
+        padding: 20px 0 6px;
     }
 
     nav {

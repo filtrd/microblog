@@ -12,7 +12,7 @@
     margin: 0;
 }
 
-.post-gallery[data-gallery] .post-gallery-image:not(:first-child) {
+.post-gallery-image[hidden] {
     display: none;
 }
 

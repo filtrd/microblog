@@ -168,7 +168,7 @@ $avatarError = trim($_GET['avatar_error'] ?? '');
 </dialog>
 
 <footer>
-    <div class="wrap"><span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span><nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav></div>
+    <div class="wrap topbar"><span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span><nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav></div>
 </footer>
 
 <script type="module" src="assets/js/app.js"></script>

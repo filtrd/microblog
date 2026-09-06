@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </main>
 
 <?php if ($canEdit): ?>
-<dialog class="composer-dialog" aria-labelledby="composer-dialog-title" data-open-on-load="1">
+<dialog class="composer-dialog" aria-labelledby="composer-dialog-title" data-open-on-load="1" data-close-url="<?= e($redirectTarget) ?>">
     <div class="composer-dialog-head">
         <strong id="composer-dialog-title">Edit post</strong>
         <button type="button" id="composer-close">Close</button>

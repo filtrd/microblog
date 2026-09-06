@@ -16,7 +16,7 @@ verify_csrf();
 $postId = (int)($_POST['post_id'] ?? 0);
 
 $stmt = db()->prepare(
-    'SELECT p.image_path, p.created_at, u.username
+    'SELECT p.created_at, u.username
      FROM posts p
      JOIN users u ON u.id = p.user_id
      WHERE p.id = ? AND p.user_id = ?'
@@ -39,8 +39,14 @@ if ($age < 0 || $age > ((int)$postDeleteTime * 60)) {
     exit;
 }
 
-if (!empty($post['image_path'])) {
-    @unlink(__DIR__ . '/' . $post['image_path']);
+$stmt = db()->prepare('SELECT image_path FROM post_images WHERE post_id = ?');
+$stmt->execute([$postId]);
+$imagePaths = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+foreach ($imagePaths as $imagePath) {
+    if (strncmp($imagePath, 'uploads/posts/', 14) === 0) {
+        @unlink(__DIR__ . '/' . $imagePath);
+    }
 }
 
 $stmt = db()->prepare('DELETE FROM posts WHERE id = ? AND user_id = ?');

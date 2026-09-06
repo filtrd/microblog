@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/inc/config.php';
+require_once __DIR__ . '/inc/functions.php';
+
+if (current_user()) {
+    header('Location: home.php');
+    exit;
+}
 ?>
 <!doctype html>
 <html lang="en">

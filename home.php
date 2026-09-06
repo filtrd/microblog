@@ -123,6 +123,14 @@ if ($hasMorePosts && $posts) $nextFeedCursor = encodeFeedCursor($posts[array_key
     </div>
 </dialog>
 
+<dialog id="delete-dialog" aria-labelledby="delete-dialog-title">
+    <p id="delete-dialog-title">Delete this post?</p>
+    <form method="dialog">
+        <button type="submit" value="cancel">Cancel</button>
+        <button type="submit" value="confirm" autofocus>Delete</button>
+    </form>
+</dialog>
+
 <footer>
     <div class="wrap">
         <span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span>

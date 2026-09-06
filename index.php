@@ -43,7 +43,7 @@ if (current_user()) {
 </main>
 
 <footer>
-    <div class="wrap">
+    <div class="wrap topbar">
         <span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span>
         <nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav>
     </div>

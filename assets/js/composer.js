@@ -73,7 +73,7 @@ export function initComposer() {
     const emojiButton = document.getElementById('emoji-button');
     const emojiPicker = document.getElementById('emoji-picker');
     const composer = document.querySelector('.composer');
-    const composerDialog = document.getElementById('composer-dialog');
+    const composerDialog = document.querySelector('.composer-dialog');
     const composerOpen = document.getElementById('composer-open');
     const composerClose = document.getElementById('composer-close');
     const maxPostLength = Number(composer?.dataset.maxPostLength || 0);
@@ -81,18 +81,18 @@ export function initComposer() {
 
     initCharacterCounter(textarea, counter, maxPostLength);
 
-    if (composerDialog && composerOpen) {
+    if (composerDialog) {
         const openComposer = () => {
             if (!composerDialog.open) composerDialog.showModal();
             textarea?.focus();
         };
 
-        composerOpen.addEventListener('click', openComposer);
+        composerOpen?.addEventListener('click', openComposer);
         composerClose?.addEventListener('click', () => composerDialog.close());
         composerDialog.addEventListener('click', event => {
             if (event.target === composerDialog) composerDialog.close();
         });
-        composerDialog.addEventListener('close', () => composerOpen.focus());
+        composerDialog.addEventListener('close', () => composerOpen?.focus());
 
         if (composerDialog.dataset.openOnLoad === '1') openComposer();
     }

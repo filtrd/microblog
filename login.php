@@ -20,7 +20,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $error = 'Invalid username or password.';
 }
 ?>
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Log in - <?= e($siteName) ?></title><link rel="stylesheet" href="assets/style.css"></head><body><main class="auth"><a class="logo" href="index.php"><?= e($siteName) ?></a><section class="card"><h1>Log in</h1><?php if ($error): ?><p class="error"><?= e($error) ?></p><?php endif; ?><form method="post"><label>Username<input name="username" required autofocus></label><label>Password<input type="password" name="password" required></label><input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>"><button class="button">Log in</button></form><p>Need an account? <a href="register.php">Sign up</a></p></section></main>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Log in - <?= e($siteName) ?></title>
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/auth.css">
+</head>
+<body>
+<main class="auth">
+    <a class="logo" href="index.php"><?= e($siteName) ?></a>
+    <section class="card">
+        <h1>Log in</h1>
+        <?php if ($error): ?><p class="error"><?= e($error) ?></p><?php endif; ?>
+        <form method="post">
+            <label>Username<input name="username" required autofocus></label>
+            <label>Password<input type="password" name="password" required></label>
+            <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+            <button class="button">Log in</button>
+        </form>
+        <p>Need an account? <a href="register.php">Sign up</a></p>
+    </section>
+</main>
 <footer>
     <div class="wrap">
         <span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span>
@@ -31,4 +54,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </nav>
     </div>
 </footer>
-</body></html>
+</body>
+</html>

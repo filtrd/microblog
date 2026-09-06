@@ -118,8 +118,7 @@ $commentError = get_flash('comment_error');
         <?php renderPost($post, $user, $fromProfile ? 'profile' : 'index'); ?>
 
         <section class="comments-page">
-            <h1>Comments<?= $commentRows ? ' ' . count($commentRows) : '' ?></h1>
-
+            
             <?php if ($commentError): ?><p class="form-error"><?= e($commentError) ?></p><?php endif; ?>
 
             <?php if ($user): ?>

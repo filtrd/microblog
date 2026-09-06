@@ -4,6 +4,7 @@ declare(strict_types=1);
 const DB_PATH = __DIR__ . '/../data/microblog.sqlite';
 const POST_URL_LENGTH = 23;
 const POST_URL_PATTERN = '~https?://[^\s<]+~i';
+const MAX_POST_IMAGES = 3;
 
 require_once __DIR__ . '/video.php';
 
@@ -125,6 +126,19 @@ function renderPostContent(string $content): string
     return nl2br($output . e(substr($content, $offset)));
 }
 
+function getPostImages(array $post): array
+{
+    $stmt = db()->prepare('SELECT id, image_path FROM post_images WHERE post_id = ? ORDER BY position ASC, id ASC');
+    $stmt->execute([(int)$post['id']]);
+    $images = $stmt->fetchAll();
+
+    if (!$images && !empty($post['image_path'])) {
+        $images[] = ['id' => null, 'image_path' => $post['image_path']];
+    }
+
+    return $images;
+}
+
 function liked_by_me(int $postId): bool
 {
     if (!isset($_SESSION['user_id'])) return false;
@@ -184,6 +198,7 @@ function renderPost(array $post, ?array $user, string $redirect = 'index'): void
         $commentUrl .= '&from=profile&u=' . urlencode($post['username']);
     }
     $isLiked = $user ? liked_by_me($postId) : false;
+    $images = getPostImages($post);
     ?>
     <article class="post" id="post-<?= $postId ?>">
         <div class="post-head">
@@ -200,7 +215,20 @@ function renderPost(array $post, ?array $user, string $redirect = 'index'): void
             <?php endif; ?>
         </div>
         <?php if ($post['content'] !== ''): ?><div class="post-content"><?= renderPostContent($post['content']) ?></div><?php endif; ?>
-        <?php if (!empty($post['image_path'])): ?><img class="post-image" src="<?= e($post['image_path']) ?>" alt=""><?php endif; ?>
+        <?php if ($images): ?>
+            <div class="post-gallery" data-gallery>
+                <?php foreach ($images as $index => $image): ?>
+                    <img class="post-gallery-image" src="<?= e($image['image_path']) ?>" alt="" <?= $index > 0 ? 'hidden' : '' ?>>
+                <?php endforeach; ?>
+                <?php if (count($images) > 1): ?>
+                    <button type="button" class="post-gallery-arrow post-gallery-prev" data-gallery-prev aria-label="Previous image">‹</button>
+                    <button type="button" class="post-gallery-arrow post-gallery-next" data-gallery-next aria-label="Next image">›</button>
+                    <div class="post-gallery-dots" data-gallery-dots aria-label="Gallery navigation">
+                        <?php foreach ($images as $index => $image): ?><button type="button" class="post-gallery-dot<?= $index === 0 ? ' is-active' : '' ?>" data-gallery-dot="<?= $index ?>" aria-label="Image <?= $index + 1 ?>" aria-current="<?= $index === 0 ? 'true' : 'false' ?>"></button><?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
         <div class="post-actions">
             <?php if ($user): ?><form class="inline" method="post" action="like.php"><input type="hidden" name="post_id" value="<?= $postId ?>"><input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>"><button type="submit" class="like-button" aria-label="<?= $isLiked ? 'Unlike post' : 'Like post' ?>" aria-pressed="<?= $isLiked ? 'true' : 'false' ?>"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path></svg><span><?= (int)($post['like_count'] ?? 0) ?></span></button></form>
             <?php else: ?><span class="like-count"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path></svg><span><?= (int)($post['like_count'] ?? 0) ?></span></span><?php endif; ?>

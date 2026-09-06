@@ -34,6 +34,23 @@ export function initCommon() {
             return;
         }
 
+        const replyButton = event.target.closest('.comment-reply-button');
+        if (replyButton) {
+            const form = document.querySelector('[data-reply-form="' + replyButton.dataset.commentId + '"]');
+            if (form) {
+                form.hidden = !form.hidden;
+                if (!form.hidden) form.querySelector('textarea')?.focus();
+            }
+            return;
+        }
+
+        const cancelButton = event.target.closest('.comment-cancel-button');
+        if (cancelButton) {
+            const form = document.querySelector('[data-reply-form="' + cancelButton.dataset.commentId + '"]');
+            if (form) form.hidden = true;
+            return;
+        }
+
         document.querySelectorAll('.post-menu-dropdown').forEach(item => item.hidden = true);
         document.querySelectorAll('.post-menu-button').forEach(item => item.setAttribute('aria-expanded', 'false'));
     });

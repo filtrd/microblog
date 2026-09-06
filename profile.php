@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/inc/database.php';
-require_once __DIR__ . '/inc/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update-profile-detail') {
     header('Content-Type: application/json; charset=utf-8');
@@ -168,7 +167,7 @@ $avatarError = trim($_GET['avatar_error'] ?? '');
 </dialog>
 
 <footer>
-    <div class="wrap topbar"><span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span><nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav></div>
+    <div class="wrap"><span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span><nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav></div>
 </footer>
 
 <script type="module" src="assets/js/app.js"></script>

@@ -250,7 +250,6 @@ export function initComposer() {
 
     imageUpload.addEventListener('change', () => {
         addFiles(imageUpload.files);
-        imageUpload.value = '';
     });
 
     renderItems();

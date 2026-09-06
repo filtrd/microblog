@@ -1,41 +1,6 @@
 @import url("footer.css");
 
 /* ----------------------------------------
-   Reset
-   ---------------------------------------- */
-
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-}
-
-html {
-    font-size: 16px;
-    -webkit-text-size-adjust: 100%;
-}
-
-body {
-    margin: 0;
-}
-
-button,
-input,
-textarea {
-    font: inherit;
-    margin: 0;
-}
-
-img,
-picture,
-svg,
-canvas {
-    display: block;
-    max-width: 100%;
-}
-
-
-/* ----------------------------------------
    Landing page
    ---------------------------------------- */
 

@@ -1,0 +1,15 @@
+footer .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+footer nav {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    footer .wrap {
+        align-items: flex-start;
+    }
+}

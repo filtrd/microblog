@@ -29,16 +29,16 @@
 .post-gallery-arrow {
     position: absolute;
     top: 50%;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(50, 50, 50, .75);
+    background: rgba(50, 50, 50, .7);
     color: #fff;
-    font-size: 24px;
-    line-height: 1;
+    font-size: 20px;
+    line-height: 0;
     transform: translateY(-50%);
     opacity: .9;
     z-index: 1;
@@ -150,8 +150,8 @@
 
 @media (max-width: 600px) {
     .post-gallery-arrow {
-        width: 30px;
-        height: 30px;
+        width: 28px;
+        height: 28px;
     }
 
     .post-gallery-prev {

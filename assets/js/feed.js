@@ -1,4 +1,5 @@
 import { initVideoEmbeds } from './video.js';
+import { initGalleries } from './gallery.js';
 
 export function initFeed() {
     const feed = document.getElementById('feed');
@@ -56,6 +57,7 @@ export function initFeed() {
             if (data.html) {
                 feed.insertAdjacentHTML('beforeend', data.html);
                 initVideoEmbeds(feed);
+                initGalleries(feed);
             }
             feed.dataset.nextCursor = data.next_cursor || '';
             feed.dataset.hasMore = data.has_more ? '1' : '0';

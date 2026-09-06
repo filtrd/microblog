@@ -2,11 +2,13 @@ import { initCommon } from './common.js';
 import { initFeed } from './feed.js';
 import { initComposer } from './composer.js';
 import { initVideoEmbeds } from './video.js';
+import { initGalleries } from './gallery.js';
 import { initProfile } from './profile.js';
 
 initCommon();
 initFeed();
 initVideoEmbeds();
+initGalleries();
 
 if (document.querySelector('.composer')) {
     initComposer();

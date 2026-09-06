@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'updat
     exit;
 }
 
+$user = require_login();
 $username = trim($_GET['u'] ?? '');
 $stmt = db()->prepare('SELECT id, username, avatar_path, location, website, created_at FROM users WHERE username = ?');
 $stmt->execute([$username]);
@@ -67,9 +68,8 @@ $stmt = db()->prepare('SELECT COUNT(*) FROM follows WHERE follower_id = ?');
 $stmt->execute([$profile['id']]);
 $followingCount = (int)$stmt->fetchColumn();
 
-$user = current_user();
 $isFollowing = false;
-if ($user && (int)$user['id'] !== (int)$profile['id']) {
+if ((int)$user['id'] !== (int)$profile['id']) {
     $stmt = db()->prepare('SELECT 1 FROM follows WHERE follower_id = ? AND following_id = ?');
     $stmt->execute([$user['id'], $profile['id']]);
     $isFollowing = (bool)$stmt->fetchColumn();
@@ -108,7 +108,7 @@ $avatarError = trim($_GET['avatar_error'] ?? '');
     <div class="wrap">
         <section class="profile">
             <div class="profile-main">
-                <?php if ($user && (int)$user['id'] === (int)$profile['id']): ?>
+                <?php if ((int)$user['id'] === (int)$profile['id']): ?>
                     <form class="avatar-form" method="post" action="avatar.php" enctype="multipart/form-data">
                         <label class="avatar-upload" for="avatar-upload">
                             <?php if (!empty($profile['avatar_path'])): ?><img class="avatar avatar-profile" src="<?= e($profile['avatar_path']) ?>" alt="">
@@ -129,16 +129,16 @@ $avatarError = trim($_GET['avatar_error'] ?? '');
                         <div class="profile-detail" data-profile-detail="location" data-value="<?= e($profile['location'] ?? '') ?>">
                             <span aria-hidden="true">📍</span>
                             <span class="profile-detail-value"><?= $profile['location'] !== null && $profile['location'] !== '' ? e($profile['location']) : 'Add location' ?></span>
-                            <?php if ($user && (int)$user['id'] === (int)$profile['id']): ?><button type="button" class="profile-detail-edit" aria-label="Edit location">✎</button><?php endif; ?>
+                            <?php if ((int)$user['id'] === (int)$profile['id']): ?><button type="button" class="profile-detail-edit" aria-label="Edit location">✎</button><?php endif; ?>
                         </div>
                         <div class="profile-detail" data-profile-detail="website" data-value="<?= e($profile['website'] ?? '') ?>">
                             <span aria-hidden="true">🌐</span>
                             <?php if (!empty($profile['website'])): ?><a class="profile-detail-value" href="https://<?= e($profile['website']) ?>" target="_blank" rel="noopener noreferrer"><?= e($profile['website']) ?></a>
                             <?php else: ?><span class="profile-detail-value">Add website</span><?php endif; ?>
-                            <?php if ($user && (int)$user['id'] === (int)$profile['id']): ?><button type="button" class="profile-detail-edit" aria-label="Edit website">✎</button><?php endif; ?>
+                            <?php if ((int)$user['id'] === (int)$profile['id']): ?><button type="button" class="profile-detail-edit" aria-label="Edit website">✎</button><?php endif; ?>
                         </div>
                     </div>
-                    <?php if ($user && (int)$user['id'] !== (int)$profile['id']): ?>
+                    <?php if ((int)$user['id'] !== (int)$profile['id']): ?>
                         <form class="follow-form" method="post" action="follow.php"><input type="hidden" name="user_id" value="<?= (int)$profile['id'] ?>"><input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>"><button class="button"><?= $isFollowing ? 'Following' : 'Follow' ?></button></form>
                     <?php endif; ?>
                 </div>

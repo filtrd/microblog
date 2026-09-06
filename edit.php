@@ -154,6 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>Edit post · <?= e($siteName) ?></title>
 <link rel="stylesheet" href="assets/style.css">
 <link rel="stylesheet" href="assets/media.css">
+<link rel="stylesheet" href="assets/composer.css">
 </head>
 <body>
 <header class="topbar">
@@ -174,61 +175,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </header>
 
 <main>
-    <div class="wrap">
-        <?php if ($canEdit): ?>
-            <p class="edit-info">You can edit this post <?= $remainingEdits ?> more time<?= $remainingEdits === 1 ? '' : 's' ?> within <?= $remainingMinutes ?> minute<?= $remainingMinutes === 1 ? '' : 's' ?>.</p>
-            <form class="composer" method="post" action="edit.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
-                <?php if ($error): ?>
-                    <p class="form-error"><?= e($error) ?></p>
-                <?php endif; ?>
-                <textarea name="content" placeholder="What's happening?"><?= e($_POST['content'] ?? $post['content']) ?></textarea>
-                <input type="file" id="image-upload" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden>
-                <input type="hidden" id="image-urls" name="image_urls" value="[]">
-                <input type="hidden" id="image-order" name="image_order" value="<?= e(json_encode(array_map(fn($image) => 'existing:' . (int)$image['id'], array_filter($existingImages, fn($image) => $image['id'] !== null)), JSON_THROW_ON_ERROR)) ?>">
+    <div class="wrap"></div>
+</main>
 
-                <div id="selected-images" class="selected-images" aria-label="Selected images">
-                    <?php foreach ($existingImages as $index => $image): ?>
-                        <?php if ($image['id'] !== null): ?>
-                            <div class="selected-image" data-image-type="existing" data-image-id="<?= (int)$image['id'] ?>" data-image-src="<?= e($image['image_path']) ?>">
-                                <img src="<?= e($image['image_path']) ?>" alt="">
-                                <div class="selected-image-actions">
-                                    <button type="button" data-image-move="left" aria-label="Move image left" <?= $index === 0 ? 'disabled' : '' ?>>‹</button>
-                                    <button type="button" data-image-remove aria-label="Remove image">×</button>
-                                    <button type="button" data-image-move="right" aria-label="Move image right">›</button>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                </div>
+<?php if ($canEdit): ?>
+<dialog class="composer-dialog" aria-labelledby="composer-dialog-title" data-open-on-load="1">
+    <div class="composer-dialog-head">
+        <strong id="composer-dialog-title">Edit post</strong>
+        <button type="button" id="composer-close">Close</button>
+    </div>
+    <p class="edit-info">You can edit this post <?= $remainingEdits ?> more time<?= $remainingEdits === 1 ? '' : 's' ?> within <?= $remainingMinutes ?> minute<?= $remainingMinutes === 1 ? '' : 's' ?>.</p>
+    <form class="composer" method="post" action="edit.php" enctype="multipart/form-data" data-max-post-length="<?= (int)$maxPostLength ?>">
+        <?php if ($error): ?>
+            <p class="form-error"><?= e($error) ?></p>
+        <?php endif; ?>
+        <textarea name="content" placeholder="What's happening?"><?= e($_POST['content'] ?? $post['content']) ?></textarea>
+        <input type="file" id="image-upload" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden>
+        <input type="hidden" id="image-urls" name="image_urls" value="[]">
+        <input type="hidden" id="image-order" name="image_order" value="<?= e(json_encode(array_map(fn($image) => 'existing:' . (int)$image['id'], array_filter($existingImages, fn($image) => $image['id'] !== null)), JSON_THROW_ON_ERROR)) ?>">
 
-                <div class="composer-tools">
-                    <div class="composer-shortcuts">
-                        <button type="button" class="icon-button" id="image-button" aria-label="Add image" title="Add image">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 5 5"></path></svg>
-                        </button>
-                        <button type="button" class="icon-button" id="emoji-button" aria-label="Add emoji" title="Add emoji">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8.5 14.5c1 1.5 2.2 2.25 3.5 2.25s2.5-.75 3.5-2.25"></path></svg>
-                        </button>
-                        <div class="emoji-picker" id="emoji-picker" hidden>
-                            <button type="button">😀</button><button type="button">😂</button><button type="button">❤️</button><button type="button">👍</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">🚀</button><button type="button">😊</button><button type="button">😎</button><button type="button">🤔</button><button type="button">👏</button><button type="button">🙌</button>
+        <div id="selected-images" class="selected-images" aria-label="Selected images">
+            <?php foreach ($existingImages as $index => $image): ?>
+                <?php if ($image['id'] !== null): ?>
+                    <div class="selected-image" data-image-type="existing" data-image-id="<?= (int)$image['id'] ?>" data-image-src="<?= e($image['image_path']) ?>">
+                        <img src="<?= e($image['image_path']) ?>" alt="">
+                        <div class="selected-image-actions">
+                            <button type="button" data-image-move="left" aria-label="Move image left" <?= $index === 0 ? 'disabled' : '' ?>>‹</button>
+                            <button type="button" data-image-remove aria-label="Remove image">×</button>
+                            <button type="button" data-image-move="right" aria-label="Move image right">›</button>
                         </div>
                     </div>
-                    <div class="composer-meta">
-                        <span id="image-count"></span>
-                        <span id="char-count">0/<?= (int)$maxPostLength ?></span>
-                        <input type="hidden" name="post_id" value="<?= (int)$post['id'] ?>">
-                        <input type="hidden" name="redirect" value="<?= e($redirect) ?>">
-                        <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
-                        <a href="<?= e($redirectTarget) ?>">Cancel</a>
-                        <button class="button" type="submit">Save</button>
-                    </div>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="composer-tools">
+            <div class="composer-shortcuts">
+                <button type="button" class="icon-button" id="image-button" aria-label="Add image" title="Add image">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8" cy="9" r="1.5"></circle><path d="M4 17l5-5 3.5 3.5 2.5-2.5 5 5"></path></svg>
+                </button>
+                <button type="button" class="icon-button" id="emoji-button" aria-label="Add emoji" title="Add emoji">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle><path d="M8.5 14.5c1 1.5 2.2 2.25 3.5 2.25s2.5-.75 3.5-2.25"></path></svg>
+                </button>
+                <div class="emoji-picker" id="emoji-picker" hidden>
+                    <button type="button">😀</button><button type="button">😂</button><button type="button">❤️</button><button type="button">👍</button><button type="button">🎉</button><button type="button">🔥</button><button type="button">🚀</button><button type="button">😊</button><button type="button">😎</button><button type="button">🤔</button><button type="button">👏</button><button type="button">🙌</button>
                 </div>
-            </form>
-        <?php else: ?>
-            <p class="error"><?= e($maxEditsReached ? 'Sorry, max edits reached.' : 'This post can no longer be edited.') ?></p>
-        <?php endif; ?>
-    </div>
-</main>
+            </div>
+            <div class="composer-meta">
+                <span id="image-count"></span>
+                <span id="char-count">0/<?= (int)$maxPostLength ?></span>
+                <input type="hidden" name="post_id" value="<?= (int)$post['id'] ?>">
+                <input type="hidden" name="redirect" value="<?= e($redirect) ?>">
+                <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+                <a href="<?= e($redirectTarget) ?>">Cancel</a>
+                <button class="button" type="submit">Save</button>
+            </div>
+        </div>
+    </form>
+</dialog>
+<?php endif; ?>
 
 <dialog id="image-dialog" aria-labelledby="image-dialog-title">
     <p id="image-dialog-title">Add image</p>

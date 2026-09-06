@@ -90,6 +90,7 @@ $commentError = get_flash('comment_error');
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Comments · <?= e($siteName) ?></title>
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/media.css">
 </head>
 <body>
 <header class="topbar">
@@ -143,6 +144,11 @@ $commentError = get_flash('comment_error');
 <footer>
     <div class="wrap"><span>&copy; <?= date('Y') ?> <?= e($siteName) ?></span><nav><a href="#">About</a><a href="#">Privacy</a><a href="#">Terms</a></nav></div>
 </footer>
+
+<script type="module">
+import { initGalleries } from './assets/js/gallery.js';
+initGalleries();
+</script>
 
 <script>
 document.querySelectorAll('.post-menu').forEach(menu => {

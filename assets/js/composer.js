@@ -58,8 +58,10 @@ export function initComposer() {
     const counter = document.getElementById('char-count');
     const imageButton = document.getElementById('image-button');
     const imageUpload = document.getElementById('image-upload');
-    const imageUrl = document.getElementById('image-url');
-    const selectedImage = document.getElementById('selected-image');
+    const imageUrlsInput = document.getElementById('image-urls');
+    const imageOrderInput = document.getElementById('image-order');
+    const selectedImages = document.getElementById('selected-images');
+    const imageCount = document.getElementById('image-count');
     const imageDialog = document.getElementById('image-dialog');
     const uploadImageOption = document.getElementById('upload-image-option');
     const urlImageOption = document.getElementById('url-image-option');
@@ -72,12 +74,135 @@ export function initComposer() {
     const emojiPicker = document.getElementById('emoji-picker');
     const composer = document.querySelector('.composer');
     const maxPostLength = Number(composer?.dataset.maxPostLength || 0);
+    const maxImages = 3;
 
     initCharacterCounter(textarea, counter, maxPostLength);
 
+    if (!selectedImages || !imageUpload || !imageUrlsInput || !imageOrderInput) {
+        initEmojiPicker(emojiButton, emojiPicker, textarea);
+        return;
+    }
+
+    const items = [];
+
+    selectedImages.querySelectorAll('.selected-image').forEach(element => {
+        const id = element.dataset.imageId;
+        const src = element.dataset.imageSrc;
+        if (id && src) items.push({ type: 'existing', id, src });
+    });
+
+    function syncFiles() {
+        const dataTransfer = new DataTransfer();
+        items.filter(item => item.type === 'file').forEach(item => dataTransfer.items.add(item.file));
+        imageUpload.files = dataTransfer.files;
+    }
+
+    function syncFields() {
+        const urls = [];
+        const order = [];
+        let fileIndex = 0;
+        let urlIndex = 0;
+
+        items.forEach(item => {
+            if (item.type === 'existing') {
+                order.push(`existing:${item.id}`);
+            } else if (item.type === 'file') {
+                order.push(`file:${fileIndex++}`);
+            } else if (item.type === 'url') {
+                urls.push(item.url);
+                order.push(`url:${urlIndex++}`);
+            }
+        });
+
+        imageUrlsInput.value = JSON.stringify(urls);
+        imageOrderInput.value = JSON.stringify(order);
+        if (imageCount) imageCount.textContent = items.length ? `${items.length}/${maxImages}` : '';
+        if (imageButton) imageButton.disabled = items.length >= maxImages;
+    }
+
+    function renderItems() {
+        selectedImages.innerHTML = '';
+        items.forEach((item, index) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'selected-image';
+            wrapper.dataset.index = String(index);
+
+            const image = document.createElement('img');
+            image.src = item.src;
+            image.alt = '';
+            wrapper.appendChild(image);
+
+            const actions = document.createElement('div');
+            actions.className = 'selected-image-actions';
+
+            const left = document.createElement('button');
+            left.type = 'button';
+            left.dataset.imageMove = 'left';
+            left.setAttribute('aria-label', 'Move image left');
+            left.textContent = '‹';
+            left.disabled = index === 0;
+
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.dataset.imageRemove = '';
+            remove.setAttribute('aria-label', 'Remove image');
+            remove.textContent = '×';
+
+            const right = document.createElement('button');
+            right.type = 'button';
+            right.dataset.imageMove = 'right';
+            right.setAttribute('aria-label', 'Move image right');
+            right.textContent = '›';
+            right.disabled = index === items.length - 1;
+
+            actions.append(left, remove, right);
+            wrapper.appendChild(actions);
+            selectedImages.appendChild(wrapper);
+        });
+        syncFields();
+    }
+
+    function removeItem(index) {
+        const item = items[index];
+        if (!item) return;
+        if (item.type === 'file' && item.src.startsWith('blob:')) URL.revokeObjectURL(item.src);
+        items.splice(index, 1);
+        syncFiles();
+        renderItems();
+    }
+
+    function moveItem(index, direction) {
+        const target = index + direction;
+        if (target < 0 || target >= items.length) return;
+        [items[index], items[target]] = [items[target], items[index]];
+        syncFiles();
+        renderItems();
+    }
+
+    selectedImages.addEventListener('click', event => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        const wrapper = button.closest('.selected-image');
+        if (!wrapper) return;
+        const index = Number(wrapper.dataset.index);
+        if (button.hasAttribute('data-image-remove')) removeItem(index);
+        if (button.dataset.imageMove === 'left') moveItem(index, -1);
+        if (button.dataset.imageMove === 'right') moveItem(index, 1);
+    });
+
+    function addFiles(fileList) {
+        const available = maxImages - items.length;
+        if (available <= 0) return;
+        Array.from(fileList).slice(0, available).forEach(file => {
+            items.push({ type: 'file', file, src: URL.createObjectURL(file) });
+        });
+        syncFiles();
+        renderItems();
+    }
+
     function resetImageDialog() {
         if (imageUrlForm) imageUrlForm.hidden = true;
-        if (imageUrlInput) imageUrlInput.value = imageUrl?.value || '';
+        if (imageUrlInput) imageUrlInput.value = '';
         if (uploadImageOption) uploadImageOption.hidden = false;
         if (urlImageOption) urlImageOption.hidden = false;
         if (imageDialogCancel) imageDialogCancel.hidden = false;
@@ -85,14 +210,14 @@ export function initComposer() {
 
     if (imageButton && imageDialog) {
         imageButton.addEventListener('click', () => {
+            if (items.length >= maxImages) return;
             resetImageDialog();
             imageDialog.showModal();
         });
 
         uploadImageOption?.addEventListener('click', () => {
-            imageUrl.value = '';
             imageDialog.close();
-            imageUpload?.click();
+            imageUpload.click();
         });
 
         urlImageOption?.addEventListener('click', () => {
@@ -111,9 +236,9 @@ export function initComposer() {
             try {
                 const parsed = new URL(value);
                 if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
-                imageUrl.value = value;
-                imageUpload.value = '';
-                if (selectedImage) selectedImage.textContent = value;
+                if (items.length >= maxImages) return;
+                items.push({ type: 'url', url: value, src: value });
+                renderItems();
                 imageDialog.close();
             } catch {
                 imageUrlInput?.focus();
@@ -123,35 +248,32 @@ export function initComposer() {
         imageDialog.addEventListener('close', resetImageDialog);
     }
 
-    if (imageUpload) {
-        imageUpload.addEventListener('change', () => {
-            imageUrl.value = '';
-            if (selectedImage) {
-                selectedImage.textContent = imageUpload.files.length ? imageUpload.files[0].name : '';
-            }
-        });
-    }
+    imageUpload.addEventListener('change', () => {
+        addFiles(imageUpload.files);
+        imageUpload.value = '';
+    });
 
-    if (imageUrl?.value && selectedImage) {
-        selectedImage.textContent = imageUrl.value;
-    }
+    renderItems();
+    initEmojiPicker(emojiButton, emojiPicker, textarea);
+}
 
-    if (emojiButton && emojiPicker && textarea) {
-        emojiButton.addEventListener('click', () => {
-            emojiPicker.hidden = !emojiPicker.hidden;
-        });
+function initEmojiPicker(emojiButton, emojiPicker, textarea) {
+    if (!emojiButton || !emojiPicker || !textarea) return;
 
-        emojiPicker.querySelectorAll('button').forEach(button => {
-            button.addEventListener('click', () => {
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                const emoji = button.textContent;
-                textarea.value = textarea.value.slice(0, start) + emoji + textarea.value.slice(end);
-                textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-                textarea.focus();
-                textarea.dispatchEvent(new Event('input'));
-                emojiPicker.hidden = true;
-            });
+    emojiButton.addEventListener('click', () => {
+        emojiPicker.hidden = !emojiPicker.hidden;
+    });
+
+    emojiPicker.querySelectorAll('button').forEach(button => {
+        button.addEventListener('click', () => {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const emoji = button.textContent;
+            textarea.value = textarea.value.slice(0, start) + emoji + textarea.value.slice(end);
+            textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+            textarea.focus();
+            textarea.dispatchEvent(new Event('input'));
+            emojiPicker.hidden = true;
         });
-    }
+    });
 }

@@ -26,6 +26,7 @@ $error = '';
 $maxEditsReached = (int)$post['edit_count'] >= (int)$postEditCount;
 $remainingEdits = max(0, (int)$postEditCount - (int)$post['edit_count']);
 $remainingMinutes = max(0, (int)ceil(((int)$postEditTime * 60 - max(0, $age)) / 60));
+$existingImages = getPostImages($post);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
@@ -36,53 +37,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : 'This post can no longer be edited.';
     } else {
         $content = trim($_POST['content'] ?? '');
-        $hasUpload = !empty($_FILES['image']['name']);
-        $imageUrl = trim($_POST['image_url'] ?? '');
-        $removeImage = !empty($_POST['remove_image']);
-        $hasImage = $hasUpload || $imageUrl !== '';
-        $imagePath = $post['image_path'];
+        $imageUrls = json_decode($_POST['image_urls'] ?? '[]', true);
+        $imageOrder = json_decode($_POST['image_order'] ?? '[]', true);
+        $imageUrls = is_array($imageUrls) ? array_values(array_filter($imageUrls, 'is_string')) : [];
+        $imageOrder = is_array($imageOrder) ? array_values(array_filter($imageOrder, 'is_string')) : [];
+        $files = $_FILES['images'] ?? null;
+        $fileCount = is_array($files) && isset($files['name']) && is_array($files['name']) ? count($files['name']) : 0;
+        $existingById = [];
+        foreach ($existingImages as $image) {
+            if ($image['id'] !== null) $existingById[(int)$image['id']] = $image['image_path'];
+        }
 
-        if ($content === '' && !$hasImage && (!$post['image_path'] || $removeImage)) {
-            $error = 'Please write something or add an image.';
+        if (count($imageOrder) > MAX_POST_IMAGES) {
+            $error = 'You can add up to ' . MAX_POST_IMAGES . ' images per post.';
         } elseif ($content !== '' && postCharacterCount($content) > (int)$maxPostLength) {
             $error = 'Post is too long.';
-        } elseif ($hasImage) {
+        }
+
+        $newImages = [];
+        $finalImages = [];
+        $retainedPaths = [];
+        $seen = [];
+
+        if ($error === '') {
             try {
-                if ($hasUpload) {
-                    $uploadError = $_FILES['image']['error'] ?? UPLOAD_ERR_NO_FILE;
-                    if ($uploadError !== UPLOAD_ERR_OK) {
-                        throw new RuntimeException(match ($uploadError) {
-                            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Image is too large. Maximum size is 5 MB.',
-                            UPLOAD_ERR_PARTIAL => 'Image upload was incomplete. Please try again.',
-                            UPLOAD_ERR_NO_TMP_DIR => 'Image upload failed. Please try again later.',
-                            UPLOAD_ERR_CANT_WRITE => 'Image could not be saved. Please try again later.',
-                            UPLOAD_ERR_EXTENSION => 'Image upload was blocked by the server.',
-                            default => 'Image upload failed. Please try again.',
-                        });
+                foreach ($imageOrder as $token) {
+                    if (isset($seen[$token])) throw new RuntimeException('Invalid image selection.');
+                    $seen[$token] = true;
+
+                    if (preg_match('/^existing:(\d+)$/', $token, $match)) {
+                        $imageId = (int)$match[1];
+                        if (!array_key_exists($imageId, $existingById)) throw new RuntimeException('Invalid image selection.');
+                        $path = $existingById[$imageId];
+                        $finalImages[] = $path;
+                        $retainedPaths[] = $path;
+                    } elseif (preg_match('/^file:(\d+)$/', $token, $match)) {
+                        $index = (int)$match[1];
+                        if ($index < 0 || $index >= $fileCount) throw new RuntimeException('Invalid image selection.');
+                        $uploadError = $files['error'][$index] ?? UPLOAD_ERR_NO_FILE;
+                        if ($uploadError !== UPLOAD_ERR_OK) {
+                            throw new RuntimeException(match ($uploadError) {
+                                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Image is too large. Maximum size is 5 MB.',
+                                UPLOAD_ERR_PARTIAL => 'Image upload was incomplete. Please try again.',
+                                UPLOAD_ERR_NO_TMP_DIR => 'Image upload failed. Please try again later.',
+                                UPLOAD_ERR_CANT_WRITE => 'Image could not be saved. Please try again later.',
+                                UPLOAD_ERR_EXTENSION => 'Image upload was blocked by the server.',
+                                default => 'Image upload failed. Please try again.',
+                            });
+                        }
+                        $path = saveImageFromFile($files['tmp_name'][$index]);
+                        $newImages[] = $path;
+                        $finalImages[] = $path;
+                    } elseif (preg_match('/^url:(\d+)$/', $token, $match)) {
+                        $index = (int)$match[1];
+                        if (!array_key_exists($index, $imageUrls) || trim($imageUrls[$index]) === '') throw new RuntimeException('Invalid image selection.');
+                        $path = saveImageFromUrl(trim($imageUrls[$index]));
+                        $newImages[] = $path;
+                        $finalImages[] = $path;
+                    } else {
+                        throw new RuntimeException('Invalid image selection.');
                     }
-                    $imagePath = saveImageFromFile($_FILES['image']['tmp_name']);
-                } elseif ($imageUrl !== '') {
-                    $imagePath = saveImageFromUrl($imageUrl);
+                }
+
+                if ($content === '' && !$finalImages) {
+                    throw new RuntimeException('Please write something or add an image.');
                 }
             } catch (RuntimeException $e) {
+                foreach ($newImages as $path) @unlink(__DIR__ . '/' . $path);
+                $newImages = [];
                 $error = $e->getMessage();
             }
-        } elseif ($removeImage) {
-            $imagePath = null;
         }
 
         if ($error === '') {
-            $stmt = db()->prepare(
-                'UPDATE posts SET content = ?, image_path = ?, updated_at = CURRENT_TIMESTAMP, edit_count = edit_count + 1 WHERE id = ? AND user_id = ? AND edit_count < ?'
-            );
-            $stmt->execute([$content, $imagePath, $postId, $user['id'], (int)$postEditCount]);
+            try {
+                $pdo = db();
+                $pdo->beginTransaction();
 
-            if ($imagePath !== $post['image_path'] && $post['image_path'] && strncmp($post['image_path'], 'uploads/posts/', 14) === 0) {
-                @unlink(__DIR__ . '/' . $post['image_path']);
+                $stmt = $pdo->prepare(
+                    'UPDATE posts SET content = ?, image_path = NULL, updated_at = CURRENT_TIMESTAMP, edit_count = edit_count + 1 WHERE id = ? AND user_id = ? AND edit_count < ?'
+                );
+                $stmt->execute([$content, $postId, $user['id'], (int)$postEditCount]);
+
+                $pdo->prepare('DELETE FROM post_images WHERE post_id = ?')->execute([$postId]);
+                $imageStmt = $pdo->prepare('INSERT INTO post_images (post_id, image_path, position) VALUES (?, ?, ?)');
+                foreach ($finalImages as $position => $path) {
+                    $imageStmt->execute([$postId, $path, $position]);
+                }
+
+                $pdo->commit();
+
+                foreach ($existingById as $path) {
+                    if (!in_array($path, $retainedPaths, true) && strncmp($path, 'uploads/posts/', 14) === 0) {
+                        @unlink(__DIR__ . '/' . $path);
+                    }
+                }
+
+                header('Location: ' . $redirectTarget);
+                exit;
+            } catch (Throwable $e) {
+                if (db()->inTransaction()) db()->rollBack();
+                foreach ($newImages as $path) @unlink(__DIR__ . '/' . $path);
+                $error = 'Could not save the post. Please try again.';
             }
-
-            header('Location: ' . $redirectTarget);
-            exit;
         }
     }
 }
@@ -96,6 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php endif; ?>
 <title>Edit post · <?= e($siteName) ?></title>
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/media.css">
 </head>
 <body>
 <header class="topbar">
@@ -124,8 +182,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="form-error"><?= e($error) ?></p>
                 <?php endif; ?>
                 <textarea name="content" placeholder="What's happening?"><?= e($_POST['content'] ?? $post['content']) ?></textarea>
-                <input type="file" id="image-upload" name="image" accept="image/jpeg,image/png,image/webp" hidden>
-                <input type="hidden" id="image-url" name="image_url" value="<?= e($_POST['image_url'] ?? '') ?>">
+                <input type="file" id="image-upload" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden>
+                <input type="hidden" id="image-urls" name="image_urls" value="[]">
+                <input type="hidden" id="image-order" name="image_order" value="<?= e(json_encode(array_map(fn($image) => 'existing:' . (int)$image['id'], array_filter($existingImages, fn($image) => $image['id'] !== null)), JSON_THROW_ON_ERROR)) ?>">
+
+                <div id="selected-images" class="selected-images" aria-label="Selected images">
+                    <?php foreach ($existingImages as $index => $image): ?>
+                        <?php if ($image['id'] !== null): ?>
+                            <div class="selected-image" data-image-type="existing" data-image-id="<?= (int)$image['id'] ?>" data-image-src="<?= e($image['image_path']) ?>">
+                                <img src="<?= e($image['image_path']) ?>" alt="">
+                                <div class="selected-image-actions">
+                                    <button type="button" data-image-move="left" aria-label="Move image left" <?= $index === 0 ? 'disabled' : '' ?>>‹</button>
+                                    <button type="button" data-image-remove aria-label="Remove image">×</button>
+                                    <button type="button" data-image-move="right" aria-label="Move image right">›</button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
 
                 <div class="composer-tools">
                     <div class="composer-shortcuts">
@@ -140,10 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
                     <div class="composer-meta">
-                        <?php if ($post['image_path']): ?>
-                            <label><input type="checkbox" name="remove_image" value="1" <?= !empty($_POST['remove_image']) ? 'checked' : '' ?>> Remove image</label>
-                        <?php endif; ?>
-                        <span id="selected-image"></span>
+                        <span id="image-count"></span>
                         <span id="char-count">0/<?= (int)$maxPostLength ?></span>
                         <input type="hidden" name="post_id" value="<?= (int)$post['id'] ?>">
                         <input type="hidden" name="redirect" value="<?= e($redirect) ?>">

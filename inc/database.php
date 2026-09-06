@@ -28,6 +28,14 @@ CREATE TABLE IF NOT EXISTS posts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS post_images (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    image_path TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS likes (
     user_id INTEGER NOT NULL,
     post_id INTEGER NOT NULL,
@@ -68,7 +76,19 @@ foreach (['location', 'website'] as $column) {
     }
 }
 
+$pdo->exec(<<<'SQL'
+INSERT INTO post_images (post_id, image_path, position)
+SELECT p.id, p.image_path, 0
+FROM posts p
+WHERE p.image_path IS NOT NULL
+  AND p.image_path <> ''
+  AND NOT EXISTS (
+      SELECT 1 FROM post_images pi WHERE pi.post_id = p.id
+  )
+SQL);
+
 $pdo->exec('CREATE INDEX IF NOT EXISTS comments_post_id_idx ON comments(post_id)');
 $pdo->exec('CREATE INDEX IF NOT EXISTS comments_parent_id_idx ON comments(parent_id)');
 $pdo->exec('CREATE INDEX IF NOT EXISTS posts_created_id_idx ON posts(created_at DESC, id DESC)');
 $pdo->exec('CREATE INDEX IF NOT EXISTS posts_user_created_id_idx ON posts(user_id, created_at DESC, id DESC)');
+$pdo->exec('CREATE INDEX IF NOT EXISTS post_images_post_position_idx ON post_images(post_id, position, id)');

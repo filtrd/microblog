@@ -15,10 +15,10 @@ $maxPostLength = 500;
 $feedPageSize = 20;
 
 // Maximum number of times a post can be edited.
-$postEditCount = '2';
+$postEditCount = '5';
 
 // Number of minutes after posting that editing is allowed.
-$postEditTime = '10';
+$postEditTime = '30';
 
 // Number of minutes after posting that deletion is allowed.
-$postDeleteTime = '12';
+$postDeleteTime = '30';

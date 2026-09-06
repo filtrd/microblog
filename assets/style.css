@@ -148,9 +148,9 @@ dialog {
     justify-content: center;
 }
 
-dialog p {
+#delete-dialog p {
     margin: 0 0 18px;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 700;
 }
 
@@ -161,7 +161,7 @@ dialog form {
 }
 
 dialog form button {
-    font-size: 10px;
+    font-size: 12px;
 }
 
 dialog::backdrop {
@@ -747,11 +747,7 @@ footer .wrap {
     gap: 20px;
 }
 
-@media (max-width: 600px) {
-    .wrap {
-        width: min(700px, calc(100% - 24px));
-    }
-
+@media (max-width: 640px) {
     .topbar {
         padding-top: 20px;
     }
@@ -760,15 +756,24 @@ footer .wrap {
         gap: 16px;
     }
 
+    .wrap {
+        width: min(700px, calc(100% - 24px));
+    }
+
+    .composer {
+        padding: 12px;
+    }
+
     .post {
         padding: 24px 0;
     }
 
-    .profile-main {
-        align-items: flex-start;
+    .post-content {
+        font-size: 13px;
     }
 
-    footer .wrap {
-        flex-direction: column;
+    #delete-dialog {
+        width: min(360px, calc(100% - 24px));
+        height: min(360px, calc(100vh - 24px));
     }
 }

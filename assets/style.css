@@ -142,6 +142,9 @@ dialog {
     width: min(360px, calc(100% - 40px));
     height: min(360px, calc(100vh - 40px));
     padding: 32px;
+}
+
+#delete-dialog[open] {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -731,23 +734,36 @@ main {
     margin-top: 12px;
 }
 
+.profile-stats span {
+    color: #666;
+    font-size: 10px;
+}
+
+.profile-bio {
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.profile-location {
+    margin-top: 4px;
+    color: #666;
+    font-size: 10px;
+}
+
+.profile-website {
+    margin-top: 4px;
+    font-size: 10px;
+}
+
 .profile-actions {
     margin-top: 12px;
 }
 
-footer {
-    padding: 24px 0;
-    color: #777;
-    font-size: 10px;
-}
-
-footer .wrap {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-}
-
 @media (max-width: 640px) {
+    .wrap {
+        width: min(700px, calc(100% - 24px));
+    }
+
     .topbar {
         padding-top: 20px;
     }
@@ -756,24 +772,12 @@ footer .wrap {
         gap: 16px;
     }
 
-    .wrap {
-        width: min(700px, calc(100% - 24px));
-    }
-
-    .composer {
-        padding: 12px;
-    }
-
-    .post {
-        padding: 24px 0;
-    }
-
-    .post-content {
-        font-size: 13px;
-    }
-
     #delete-dialog {
         width: min(360px, calc(100% - 24px));
         height: min(360px, calc(100vh - 24px));
+    }
+
+    .profile-main {
+        align-items: flex-start;
     }
 }

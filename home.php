@@ -4,6 +4,11 @@ require_once __DIR__ . '/inc/database.php';
 require_once __DIR__ . '/inc/config.php';
 
 $user = current_user();
+if (!$user) {
+    header('Location: index.php');
+    exit;
+}
+
 $postError = get_flash('post_error');
 $postDraft = get_flash('post_draft') ?? '';
 $feedPageSize = (int)$feedPageSize;
